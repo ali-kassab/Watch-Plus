@@ -1,0 +1,339 @@
+// PulseWatch database schema (PostgreSQL, Prisma ORM 7)
+// See docs/DATABASE_DESIGN.md for the rationale behind each table and index.
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum HttpMethod {
+  GET
+  POST
+  PUT
+  PATCH
+  DELETE
+  HEAD
+  OPTIONS
+}
+
+enum MonitorHealth {
+  PENDING
+  UP
+  DOWN
+}
+
+enum CheckErrorType {
+  TIMEOUT
+  DNS
+  CONNECTION
+  TLS
+  STATUS_MISMATCH
+  BLOCKED_TARGET
+  UNKNOWN
+}
+
+enum IncidentStatus {
+  OPEN
+  INVESTIGATING
+  IDENTIFIED
+  MONITORING
+  RESOLVED
+}
+
+enum IncidentSeverity {
+  MINOR
+  MAJOR
+  CRITICAL
+}
+
+enum IncidentUpdateType {
+  CREATED
+  STATUS_CHANGE
+  UPDATE
+  NOTE
+  RESOLVED
+}
+
+enum NotificationChannelType {
+  EMAIL
+  WEBHOOK
+}
+
+enum NotificationEvent {
+  MONITOR_DOWN
+  MONITOR_RECOVERED
+  INCIDENT_UPDATED
+  TEST
+}
+
+enum DeliveryStatus {
+  PENDING
+  SENDING
+  SUCCESS
+  FAILED
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique
+  name         String
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  memberships     Membership[]
+  refreshTokens   RefreshToken[]
+  invitationsSent Invitation[]     @relation("InvitedBy")
+  incidentUpdates IncidentUpdate[]
+  incidents       Incident[]       @relation("IncidentCreatedBy")
+
+  @@map("users")
+}
+
+/// Opaque refresh tokens. Only a SHA-256 hash is stored. Tokens rotate on every
+/// use; all tokens created from the same login share a `familyId` so that reuse
+/// of a rotated token revokes the whole family.
+model RefreshToken {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  tokenHash  String    @unique @map("token_hash")
+  familyId   String    @map("family_id") @db.Uuid
+  expiresAt  DateTime  @map("expires_at") @db.Timestamptz(3)
+  revokedAt  DateTime? @map("revoked_at") @db.Timestamptz(3)
+  replacedBy String?   @map("replaced_by") @db.Uuid
+  userAgent  String?   @map("user_agent")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([familyId])
+  @@map("refresh_tokens")
+}
+
+model Workspace {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  memberships          Membership[]
+  invitations          Invitation[]
+  monitors             Monitor[]
+  incidents            Incident[]
+  notificationChannels NotificationChannel[]
+  deliveries           NotificationDelivery[]
+  statusPage           StatusPage?
+
+  @@map("workspaces")
+}
+
+model Membership {
+  id          String   @id @default(uuid()) @db.Uuid
+  workspaceId String   @map("workspace_id") @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  role        Role
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@index([userId])
+  @@map("memberships")
+}
+
+model Invitation {
+  id          String    @id @default(uuid()) @db.Uuid
+  workspaceId String    @map("workspace_id") @db.Uuid
+  email       String
+  role        Role
+  tokenHash   String    @unique @map("token_hash")
+  invitedById String    @map("invited_by_id") @db.Uuid
+  expiresAt   DateTime  @map("expires_at") @db.Timestamptz(3)
+  acceptedAt  DateTime? @map("accepted_at") @db.Timestamptz(3)
+  revokedAt   DateTime? @map("revoked_at") @db.Timestamptz(3)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  invitedBy User      @relation("InvitedBy", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@map("invitations")
+}
+
+model Monitor {
+  id                  String        @id @default(uuid()) @db.Uuid
+  workspaceId         String        @map("workspace_id") @db.Uuid
+  name                String
+  url                 String
+  method              HttpMethod    @default(GET)
+  intervalSeconds     Int           @map("interval_seconds")
+  timeoutMs           Int           @map("timeout_ms")
+  expectedStatusCodes Int[]         @map("expected_status_codes")
+  headers             Json          @default("{}")
+  body                String?
+  retries             Int           @default(1)
+  isActive            Boolean       @default(true) @map("is_active")
+  showOnStatusPage    Boolean       @default(true) @map("show_on_status_page")
+  health              MonitorHealth @default(PENDING)
+  lastCheckedAt       DateTime?     @map("last_checked_at") @db.Timestamptz(3)
+  lastStatusCode      Int?          @map("last_status_code")
+  lastResponseTimeMs  Int?          @map("last_response_time_ms")
+  lastError           String?       @map("last_error")
+  healthChangedAt     DateTime?     @map("health_changed_at") @db.Timestamptz(3)
+  /// Scheduler state: when the next check is due and a lease that prevents
+  /// overlapping checks (also across processes).
+  nextCheckAt         DateTime      @default(now()) @map("next_check_at") @db.Timestamptz(3)
+  lockedUntil         DateTime?     @map("locked_until") @db.Timestamptz(3)
+  createdAt           DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt           DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  workspace Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  checks    CheckResult[]
+  incidents Incident[]
+
+  @@index([workspaceId])
+  @@index([isActive, nextCheckAt])
+  @@map("monitors")
+}
+
+model CheckResult {
+  id             BigInt          @id @default(autoincrement())
+  monitorId      String          @map("monitor_id") @db.Uuid
+  checkedAt      DateTime        @default(now()) @map("checked_at") @db.Timestamptz(3)
+  success        Boolean
+  statusCode     Int?            @map("status_code")
+  responseTimeMs Int?            @map("response_time_ms")
+  errorType      CheckErrorType? @map("error_type")
+  error          String?
+  attempts       Int             @default(1)
+
+  monitor Monitor @relation(fields: [monitorId], references: [id], onDelete: Cascade)
+
+  @@index([monitorId, checkedAt(sort: Desc)])
+  @@index([checkedAt])
+  @@map("check_results")
+}
+
+/// A partial unique index (see migration) guarantees at most one unresolved
+/// incident per monitor: `UNIQUE (monitor_id) WHERE status <> 'RESOLVED'`.
+model Incident {
+  id          String           @id @default(uuid()) @db.Uuid
+  workspaceId String           @map("workspace_id") @db.Uuid
+  monitorId   String?          @map("monitor_id") @db.Uuid
+  title       String
+  status      IncidentStatus   @default(OPEN)
+  severity    IncidentSeverity @default(MAJOR)
+  isAutomatic Boolean          @default(false) @map("is_automatic")
+  isPublic    Boolean          @default(true) @map("is_public")
+  resolution  String?
+  startedAt   DateTime         @default(now()) @map("started_at") @db.Timestamptz(3)
+  resolvedAt  DateTime?        @map("resolved_at") @db.Timestamptz(3)
+  createdById String?          @map("created_by_id") @db.Uuid
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  workspace Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  monitor   Monitor?         @relation(fields: [monitorId], references: [id], onDelete: SetNull)
+  createdBy User?            @relation("IncidentCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  updates   IncidentUpdate[]
+
+  @@index([workspaceId, status])
+  @@index([workspaceId, startedAt(sort: Desc)])
+  @@index([monitorId])
+  @@map("incidents")
+}
+
+model IncidentUpdate {
+  id         String             @id @default(uuid()) @db.Uuid
+  incidentId String             @map("incident_id") @db.Uuid
+  type       IncidentUpdateType
+  status     IncidentStatus?
+  message    String
+  isInternal Boolean            @default(false) @map("is_internal")
+  authorId   String?            @map("author_id") @db.Uuid
+  createdAt  DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  incident Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  author   User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([incidentId, createdAt])
+  @@map("incident_updates")
+}
+
+/// Channel configuration (recipients, webhook URL and signing secret) is stored
+/// AES-256-GCM encrypted in `configEncrypted` and never returned in full.
+model NotificationChannel {
+  id              String                  @id @default(uuid()) @db.Uuid
+  workspaceId     String                  @map("workspace_id") @db.Uuid
+  type            NotificationChannelType
+  name            String
+  configEncrypted String                  @map("config_encrypted")
+  events          NotificationEvent[]
+  isEnabled       Boolean                 @default(true) @map("is_enabled")
+  createdAt       DateTime                @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime                @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  workspace  Workspace              @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  deliveries NotificationDelivery[]
+
+  @@index([workspaceId])
+  @@map("notification_channels")
+}
+
+/// Outbox of notification deliveries, processed by the delivery worker with
+/// exponential backoff. Survives restarts.
+model NotificationDelivery {
+  id             String            @id @default(uuid()) @db.Uuid
+  workspaceId    String            @map("workspace_id") @db.Uuid
+  channelId      String            @map("channel_id") @db.Uuid
+  event          NotificationEvent
+  payload        Json
+  status         DeliveryStatus    @default(PENDING)
+  attempts       Int               @default(0)
+  maxAttempts    Int               @default(5) @map("max_attempts")
+  nextAttemptAt  DateTime          @default(now()) @map("next_attempt_at") @db.Timestamptz(3)
+  lockedUntil    DateTime?         @map("locked_until") @db.Timestamptz(3)
+  lastError      String?           @map("last_error")
+  responseStatus Int?              @map("response_status")
+  deliveredAt    DateTime?         @map("delivered_at") @db.Timestamptz(3)
+  createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  workspace Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  channel   NotificationChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@index([status, nextAttemptAt])
+  @@index([workspaceId, createdAt(sort: Desc)])
+  @@map("notification_deliveries")
+}
+
+model StatusPage {
+  id          String   @id @default(uuid()) @db.Uuid
+  workspaceId String   @unique @map("workspace_id") @db.Uuid
+  slug        String   @unique
+  title       String
+  description String?
+  isPublished Boolean  @default(false) @map("is_published")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@map("status_pages")
+}
