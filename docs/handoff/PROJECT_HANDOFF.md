@@ -1,6 +1,6 @@
 # PulseWatch — Project Handoff (permanent source of truth)
 
-_Last updated: 2026-11-23 (session 1)._ Always verify claims below against the code and `git log`.
+_Last updated: 2026-11-23 (session 2)._ Always verify claims below against the code and `git log`.
 
 ## 1. Purpose & requirements
 PulseWatch is a portfolio-grade SaaS for monitoring websites/APIs, detecting downtime, managing
@@ -23,16 +23,24 @@ tests, docs.
   (e.g. `yahyamohmuedpro99`, `DeV-Global-LLC`, `Noureldin-Ahmed-FullStack`).
 - Never commit secrets or `.env` files.
 - Update handoff files throughout development.
+- **Never modify `main`; use only an authorized feature branch** (none authorized yet — ask the owner).
+- **Skills & Reuse-First policy (owner requirement, session 2):** discover and read relevant installed Skills
+  before applicable work and never claim to have used one without reading it; prefer existing project components
+  and installed libraries; for new features evaluate mature, compatible, free/open-source libraries before custom
+  code (check maintenance, license, accessibility, bundle size); avoid unnecessary dependencies; do not refactor
+  existing components merely to apply this policy. Project architecture/security rules take priority over Skill advice.
+  (The owner's message also mentioned Arabic RTL / English LTR; this is **not** a documented PulseWatch requirement —
+  confirm with the owner before implementing.)
 
 ## 2. Repository & Git
 - Target remote: `https://github.com/ali-kassab/pulsewatch` (public) — **does not exist yet** (see blockers).
 - Local repo: `/home/user/pulsewatch` (session container path), branch `main` (local only, no remote).
-- Commits so far: see `SESSION_HANDOFF.md` (root) for the exact hashes.
+- Commits so far: see `docs/handoff/SESSION_HANDOFF.md` for the exact hashes.
 
 ## 3. Architecture (implemented)
 Modular monolith. `backend/` NestJS 12 (ESM, TypeScript 6, Express adapter) + Prisma 7.10.1 (`prisma-client`
-generator, `@prisma/adapter-pg`) + PostgreSQL 16. `frontend/` Next.js (App Router) — **not started**.
-`docs/` documentation.
+generator, `@prisma/adapter-pg`) + PostgreSQL 16. `frontend/` Next.js 16 (App Router), React 19, Tailwind 4.
+`docs/` documentation. Frontend layout: `frontend/src/{app,components/{ui,common,charts,layout,monitors,providers,status,auth},lib}`.
 
 ```
 backend/
@@ -60,6 +68,11 @@ backend/
 | `WorkspaceGuard` on every `/workspaces/:workspaceId/*` route: non-member → 404, insufficient role → 403 (`@MinRole`); services always filter by `workspaceId` | Isolation in depth; ids cannot be probed. |
 | Check results kept 90 days (`CHECK_RETENTION_DAYS`), pruned hourly; analytics computed with SQL aggregates (`date_bin`, `percentile_cont`) | No rollup tables needed at portfolio scale. |
 | `backend/.npmrc` has `legacy-peer-deps=true` | npm 10 arborist crashes (`edgesOut`) resolving vitest 4 optional peers. |
+| Frontend: Next.js 16.4.6 App Router with `cacheComponents` + `partialPrefetching` (scaffold default) | Pages that read route params/search params are client views rendered inside `<Suspense>` from a server `page.tsx`/`layout.tsx` (required by Cache Components; `/w/[workspaceId]/layout.tsx` provides the boundary for all workspace pages). |
+| Browser calls same-origin `/api/*`, proxied by Next `rewrites` to `BACKEND_URL` | Refresh cookie stays first-party (SameSite=Strict); no browser CORS. Access token kept in memory only (`src/lib/api.ts`), single-flight refresh on 401. |
+| shadcn/ui components vendored in `frontend/src/components/ui` (new-york v4 style) on `radix-ui`, `class-variance-authority`, `tailwind-merge` | The shadcn registry (ui.shadcn.com) is blocked by the session proxy, so the CLI cannot fetch; components were written to shadcn's published source conventions. |
+| Data fetching: TanStack Query (`src/lib/queries.ts`, central query keys), forms: React Hook Form + Zod (`src/lib/schemas.ts`) | Caching, polling (15 s live refresh), loading/error states; client schemas mirror API rules, API stays the source of truth. |
+| Charts: Recharts, following the `dataviz` Skill: series-1 `#2a78d6`/`#3987e5`, series-2 `#eb6834`/`#d95926` (validated light+dark), status colors only for state with icon+label, 2px lines, 10% area wash, hairline solid grid, crosshair tooltip, table-view toggle | Accessible, consistent charts (`src/components/charts`). |
 
 ## 4. Database (see `backend/prisma/schema.prisma`)
 users, refresh_tokens, workspaces, memberships (unique workspace+user), invitations (token hash),
@@ -93,7 +106,7 @@ grant OWNER); OWNER everything incl. workspace deletion; at least one owner alwa
 | Notifications (email SMTP/log, webhooks, retries, logs, test send) | ✅ implemented & tested |
 | Status pages, analytics, health | ✅ implemented & tested |
 | Seed data | ✅ (`npm run db:seed`, demo@pulsewatch.dev / pulsewatch-demo) |
-| Frontend (Next.js, Tailwind, shadcn/ui, Recharts, RHF+Zod) | ❌ not started |
+| Frontend (Next.js, Tailwind, shadcn/ui, Recharts, RHF+Zod) | 🟡 in progress — see docs/handoff/SESSION_HANDOFF.md |
 | Docs: README, ARCHITECTURE, API_DOCUMENTATION, DATABASE_DESIGN, SECURITY, CHANGELOG | ❌ not written (README is a placeholder) |
 | GitHub repository + push | ❌ blocked |
 
