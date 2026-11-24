@@ -1,18 +1,20 @@
 # PulseWatch — Session Handoff
 
-_Session 5 · 2026-11-24 · in progress (continues session 4 in the same container)._ Read `docs/handoff/PROJECT_HANDOFF.md`
+_Session 5 · 2026-11-24 · roadmap complete (continues session 4 in the same container)._ Read `docs/handoff/PROJECT_HANDOFF.md`
 first (permanent decisions & policies), then this file.
 
 ## Project overview
 PulseWatch: API/website monitoring & incident-management SaaS (portfolio project). `backend/` NestJS 12 + Prisma 7 +
-PostgreSQL (complete, unchanged this session). `frontend/` Next.js 16 App Router: all authenticated workspace pages
+PostgreSQL (complete; session 5 only added the access-log token redaction). `frontend/` Next.js 16 App Router: all authenticated workspace pages
 and the public status page now exist — **all planned frontend pages are complete**.
 
 ## Git
 - Repo `https://github.com/ali-kassab/Watch-Plus`. PR #1 (`feature/pulsewatch-frontend`) was **merged into `main`** by
   the owner. This session used the session-authorized branch **`claude/peaceful-mayer-6hod8f`** (created from `main`
   @ `f778a84`). `main` untouched. No PR created.
-- Commits this session: `64c0fe4` (incidents) and the checkpoint commit that contains this file (see `git log`).
+- Commits (sessions 4–5, oldest first): `64c0fe4` incidents · `3731c70` notifications/status-page/team/settings ·
+  `39533d4` public status page · `c4a24f9` frontend tests · `d802601` E2E results · `f7112ae` docs · `76ebea8` log
+  redaction · plus the handoff commit that contains this line (see `git log`).
 - Identity: a fresh container's global git identity is Claude's. At session start the **repo-local** identity was set to
   the owner's documented identity `Ali Kassab <110043853+ali-kassab@users.noreply.github.com>` (the identity of all
   earlier commits). Author = Committer = owner, no co-author trailers. Re-set it locally in every new container.
