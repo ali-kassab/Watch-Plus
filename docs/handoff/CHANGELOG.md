@@ -6,6 +6,9 @@ Development log per milestone (newest first). Hashes: see `git log`.
 ### Added
 - Frontend incidents: list (state tabs, severity filter, pagination), declare-incident dialog, detail page with
   timeline, public updates with status change, internal notes, severity / status-page visibility editing, resolve dialog.
+- Frontend notifications (channels CRUD, test send, one-time signing secret, rotate, delivery log), status-page
+  settings, team (roles, removal, leave, invitations) and workspace settings (rename, delete) pages.
+- `UptimeHistory` 90-day status strip component (for the upcoming public status page).
 
 ## Earlier (merged into `main` via PR #1, `feature/pulsewatch-frontend`)
 - Backend: NestJS API — auth, workspaces, RBAC, team/invitations, monitors + DB-backed scheduler, incidents,

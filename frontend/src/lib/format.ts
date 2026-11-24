@@ -55,6 +55,19 @@ export function can(role: Role | undefined, required: Role): boolean {
   return !!role && RANK[role] >= RANK[required];
 }
 
+/** Mirrors the API team policy: owners manage everyone, others only strictly lower roles (needs ADMIN+). */
+export function canManageMember(actor: Role, target: Role): boolean {
+  if (!can(actor, "ADMIN")) return false;
+  return actor === "OWNER" || RANK[target] < RANK[actor];
+}
+
+/** Roles an actor may grant: never above their own. */
+export function assignableRoles(actor: Role): Role[] {
+  return (["OWNER", "ADMIN", "MEMBER", "VIEWER"] as Role[]).filter((r) => RANK[r] <= RANK[actor]);
+}
+
+export const ROLE_LABEL: Record<Role, string> = { OWNER: "Owner", ADMIN: "Admin", MEMBER: "Member", VIEWER: "Viewer" };
+
 /** Parses "200, 201-204" into a sorted list of unique status codes. */
 export function parseStatusCodes(input: string): number[] | null {
   const out = new Set<number>();
