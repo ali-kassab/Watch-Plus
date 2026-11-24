@@ -19,9 +19,15 @@ and the public status page now exist — **all planned frontend pages are comple
 
 ## Checkpoint reached
 Frontend milestone 2 (remaining pages) **complete**: all workspace pages (session 4) + public `/status/[slug]` (session 5).
-Frontend test suite and role-based browser E2E done (session 5). Next milestone: project documentation.
+Frontend tests, role-based browser E2E and project documentation done (session 5). **The documented roadmap
+(PROJECT_HANDOFF §9) is complete**; remaining items are optional follow-ups listed below.
 
 ## Completed in session 5
+- **Documentation**: `README.md` (rewritten: features, local setup with manually installed Node.js 22 + PostgreSQL 16,
+  tests, configuration table), `docs/ARCHITECTURE.md`, `docs/API_DOCUMENTATION.md`, `docs/DATABASE_DESIGN.md`,
+  `docs/SECURITY.md`. Every factual claim was checked against the code (corrections made during review: guard/pipe
+  order, refresh token size 48 bytes, check response cap 16 kB, avg/p95 over successful checks only, webhook summary
+  format). Relative links verified. No Docker/CI/deployment content (policy).
 - **Browser E2E (manual run, Playwright from the pre-installed package; scripts not committed — committing them would
   need `@playwright/test`, a new dependency):** 26/26 checks passed, 0 page errors. Covered: invite → sign up via link
   → accept; VIEWER sees no create/edit actions on monitors, incidents, status page (disabled), team (no invite/role
@@ -90,7 +96,14 @@ Frontend test suite and role-based browser E2E done (session 5). Next milestone:
 1. ~~Public `/status/[slug]`~~ ✅ done (session 5).
 2. ~~Frontend tests~~ ✅ done (session 5, 46 tests).
 3. ~~Broader browser E2E~~ ✅ done (session 5, 26/26).
-4. **Docs (exact next step):** README (local PostgreSQL, no Docker), ARCHITECTURE, API_DOCUMENTATION, DATABASE_DESIGN, SECURITY.
+4. ~~Docs~~ ✅ done (session 5).
+5. **Exact next step — owner decisions / optional follow-ups (no further roadmap items are documented):**
+   - Owner: review the branch `claude/peaceful-mayer-6hod8f` and decide whether to open a PR into `main` (not done
+     without explicit request).
+   - Security follow-up (queued as a suggested task): the access log records `/api/invitations/<token>` paths —
+     redact the token segment in `backend/src/common/http/request-id.middleware.ts`, then drop the bullet in
+     `docs/SECURITY.md` → Known limitations.
+   - Optional: commit Playwright E2E specs (requires adding `@playwright/test`; needs owner approval for the dependency).
 
 ## Environment notes (fresh container)
 - `sudo service postgresql start`; create role `pulsewatch`/`pulsewatch` (CREATEDB) and DBs `pulsewatch`, `pulsewatch_test`.
@@ -106,5 +119,6 @@ Frontend test suite and role-based browser E2E done (session 5). Next milestone:
 - Demo services show "down" in the sandbox only (no internet egress — see PROJECT_HANDOFF §8).
 - Arabic RTL / English LTR: mentioned by the owner but not a documented requirement — not implemented (confirm first);
   new components use logical CSS properties (`ps-`, `start-`, `rounded-s-`) where cheap.
+- Access log contains invitation tokens in paths (documented in `docs/SECURITY.md`; follow-up queued).
 - Branch naming: PROJECT_HANDOFF names `feature/pulsewatch-frontend` (already merged); this session's environment
   authorized `claude/peaceful-mayer-6hod8f`. Owner should confirm the branch for the next session.

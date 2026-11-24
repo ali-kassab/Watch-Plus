@@ -1,6 +1,6 @@
 # PulseWatch — Project Handoff (permanent source of truth)
 
-_Last updated: 2026-11-23 (session 2)._ Always verify claims below against the code and `git log`.
+_Last updated: 2026-11-24 (session 5)._ Always verify claims below against the code and `git log`.
 
 ## 1. Purpose & requirements
 PulseWatch is a portfolio-grade SaaS for monitoring websites/APIs, detecting downtime, managing
@@ -39,6 +39,8 @@ tests, docs.
 - **Authorized development branch: `feature/pulsewatch-frontend`.** `main` holds only the repo's initial commit and is
   changed only through owner-approved pull requests. GitHub-first: commit and push every tested milestone promptly and
   verify the remote hash; the cloud container is only a temporary execution environment.
+- PR #1 (`feature/pulsewatch-frontend`) was merged into `main` by the owner. Later sessions ran on the branch the
+  session environment authorized (`claude/peaceful-mayer-6hod8f`); the owner decides which branch future work uses.
 - Commits so far: see `docs/handoff/SESSION_HANDOFF.md` for the exact hashes.
 
 ## 3. Architecture (implemented)
@@ -110,9 +112,9 @@ grant OWNER); OWNER everything incl. workspace deletion; at least one owner alwa
 | Notifications (email SMTP/log, webhooks, retries, logs, test send) | ✅ implemented & tested |
 | Status pages, analytics, health | ✅ implemented & tested |
 | Seed data | ✅ (`npm run db:seed`, demo@pulsewatch.dev / pulsewatch-demo) |
-| Frontend (Next.js, Tailwind, shadcn/ui, Recharts, RHF+Zod) | ✅ all pages implemented; tests in progress — see docs/handoff/SESSION_HANDOFF.md |
-| Docs: README, ARCHITECTURE, API_DOCUMENTATION, DATABASE_DESIGN, SECURITY, CHANGELOG | ❌ not written (README is a placeholder) |
-| GitHub repository + push | ❌ blocked |
+| Frontend (Next.js, Tailwind, shadcn/ui, Recharts, RHF+Zod) | ✅ all pages implemented and tested (Vitest + manual browser E2E) |
+| Docs: README, ARCHITECTURE, API_DOCUMENTATION, DATABASE_DESIGN, SECURITY (`docs/`), CHANGELOG (`docs/handoff/`) | ✅ written |
+| GitHub repository + push | ✅ `ali-kassab/Watch-Plus` |
 
 ## 7. Testing status (actually executed 2026-11-23)
 - Unit (`npm test`): 11 files, 77 tests passed.
@@ -123,20 +125,12 @@ grant OWNER); OWNER everything incl. workspace deletion; at least one owner alwa
   (Next.js guidance). See `docs/handoff/SESSION_HANDOFF.md` for current counts.
 
 ## 8. Known issues / limitations
-- Repository `ali-kassab/pulsewatch` cannot be created from the cloud session (proxy blocks `POST /user/repos`);
-  must be created by the owner, then added to the Claude GitHub App's selected repositories.
 - The cloud sandbox has no direct DNS/HTTP egress, so monitors for public URLs fail with DNS errors **only in
   the sandbox**; tests use local HTTP servers with `ALLOW_PRIVATE_TARGETS=true`.
 - Redirects are not followed by checks (by design, SSRF); add 3xx codes to expected codes if needed.
 - Monitor custom header values are stored in plaintext JSON (masked for viewers); channel configs are encrypted.
 - Prisma blocks `migrate reset` for AI agents; use `psql` drop/create on throwaway dev DBs or run it yourself.
 
-## 9. Next steps (in order)
-1. Scaffold `frontend/` (Next.js App Router + TS + Tailwind + shadcn/ui + Recharts + RHF/Zod + TanStack Query),
-   API proxy via Next rewrites `/api/* → http://localhost:4000/api/*` (keeps refresh cookie first-party).
-2. Build pages: auth, onboarding, dashboard, monitors (list/new/detail/edit), incidents, notifications,
-   status-page settings, team, account, public `/status/[slug]`, `/invite/[token]`.
-3. Frontend tests (Vitest + Testing Library), production build, manual E2E run.
-4. Write docs (README with local PostgreSQL setup without Docker, ARCHITECTURE, API_DOCUMENTATION,
-   DATABASE_DESIGN, SECURITY, CHANGELOG).
-5. Once the owner creates the repo and authorizes a branch: verify identity of every commit, push, verify remote hash.
+## 9. Next steps
+The original roadmap (backend, frontend pages, frontend tests, browser E2E, documentation) is complete. Current
+follow-ups and owner decisions are tracked in `docs/handoff/SESSION_HANDOFF.md`.

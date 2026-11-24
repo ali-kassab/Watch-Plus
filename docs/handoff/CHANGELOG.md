@@ -14,6 +14,8 @@ Development log per milestone (newest first). Hashes: see `git log`.
 - Frontend test suite: `npm test` (Vitest 5 + Testing Library, jsdom) — format/policy helpers, form schemas and
   payload builders, API client (token, single-flight refresh, errors), incident update form, channel dialog,
   incident timeline, uptime strip.
+- Documentation: README (local setup with PostgreSQL, no Docker; tests; configuration), `docs/ARCHITECTURE.md`,
+  `docs/API_DOCUMENTATION.md`, `docs/DATABASE_DESIGN.md`, `docs/SECURITY.md`.
 
 ## Earlier (merged into `main` via PR #1, `feature/pulsewatch-frontend`)
 - Backend: NestJS API — auth, workspaces, RBAC, team/invitations, monitors + DB-backed scheduler, incidents,
