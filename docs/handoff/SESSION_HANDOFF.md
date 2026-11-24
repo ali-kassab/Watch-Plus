@@ -19,9 +19,17 @@ and the public status page now exist — **all planned frontend pages are comple
 
 ## Checkpoint reached
 Frontend milestone 2 (remaining pages) **complete**: all workspace pages (session 4) + public `/status/[slug]` (session 5).
-Frontend test suite added (session 5). Next milestone: broader browser E2E (role-based views + untested flows).
+Frontend test suite and role-based browser E2E done (session 5). Next milestone: project documentation.
 
 ## Completed in session 5
+- **Browser E2E (manual run, Playwright from the pre-installed package; scripts not committed — committing them would
+  need `@playwright/test`, a new dependency):** 26/26 checks passed, 0 page errors. Covered: invite → sign up via link
+  → accept; VIEWER sees no create/edit actions on monitors, incidents, status page (disabled), team (no invite/role
+  controls/invitations), settings (rename disabled, no delete), notifications hidden + "Admins only"; owner changes
+  role to MEMBER via UI → create actions appear, notifications still admin-only; owner removes member → removed user
+  gets "Workspace not found"; channel edit, rotate secret (shown once), test send (webhook: correct failure toast
+  "DNS lookup failed" — sandbox has no egress; e-mail with `MAIL_TRANSPORT=log`: "Test notification delivered", log row
+  "Delivered 1/1"), delete; sole owner cannot leave (API message shown); workspace delete → redirect, then 404 view.
 - **Frontend tests**: `frontend/vitest.config.mts` (jsdom, `@vitejs/plugin-react`, `@/` alias via `resolve.alias` —
   `vite-tsconfig-paths` from the Next guide is not installed and not needed), `src/test/setup.ts` (jest-dom matchers,
   cleanup, ResizeObserver/pointer-capture stubs for Radix), scripts `npm test` / `npm run test:watch`. Tests:
@@ -76,15 +84,13 @@ Frontend test suite added (session 5). Next milestone: broader browser E2E (role
 | Playwright smoke vs real backend + seeded DB: incidents (create → status update → note → severity → resolve) | ✅ |
 | Playwright smoke: notifications (create webhook → secret shown once → listed → delivery log), status-page save, team invite (link shown, dialog closes), settings rename | ✅ (a dialog-close flicker bug found and fixed, re-verified) |
 | Backend `npm test` 77 ✅, `npm run test:e2e` 58 ✅ | run at session start; backend unchanged since |
-| Not tested in browser | member role change/remove/leave, channel edit/rotate/delete/test send, workspace delete, RBAC views as VIEWER/MEMBER |
+| Previously untested flows | ✅ all covered by the session-5 E2E run (see above) |
 
 ## Incomplete work / next steps (in order)
 1. ~~Public `/status/[slug]`~~ ✅ done (session 5).
 2. ~~Frontend tests~~ ✅ done (session 5, 46 tests).
-3. **Broader browser E2E (exact next step)**: role-based views (sign in as a VIEWER/MEMBER via an invitation) and the
-   flows not yet exercised in a browser (see "Not tested in browser" above). Playwright is pre-installed; scripts so
-   far live only in the session scratchpad — no E2E test files are committed.
-4. Docs: README (local PostgreSQL, no Docker), ARCHITECTURE, API_DOCUMENTATION, DATABASE_DESIGN, SECURITY.
+3. ~~Broader browser E2E~~ ✅ done (session 5, 26/26).
+4. **Docs (exact next step):** README (local PostgreSQL, no Docker), ARCHITECTURE, API_DOCUMENTATION, DATABASE_DESIGN, SECURITY.
 
 ## Environment notes (fresh container)
 - `sudo service postgresql start`; create role `pulsewatch`/`pulsewatch` (CREATEDB) and DBs `pulsewatch`, `pulsewatch_test`.
