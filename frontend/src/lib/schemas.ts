@@ -71,6 +71,18 @@ export const incidentFormSchema = z.object({
 });
 export type IncidentFormValues = z.infer<typeof incidentFormSchema>;
 
+/** "keep" = post an update without changing the status. Internal notes never change the status (API rule). */
+export const incidentUpdateFormSchema = z
+  .object({
+    message: z.string().trim().min(1, "Write an update").max(5000),
+    status: z.enum(["keep", "OPEN", "INVESTIGATING", "IDENTIFIED", "MONITORING", "RESOLVED"]),
+    isInternal: z.boolean(),
+  })
+  .refine((v) => !(v.isInternal && v.status !== "keep"), { path: ["status"], message: "Internal notes cannot change the status" });
+export type IncidentUpdateFormValues = z.infer<typeof incidentUpdateFormSchema>;
+
+export const resolveIncidentSchema = z.object({ resolution: z.string().trim().min(1, "Describe how it was resolved").max(5000) });
+
 /** Only same-site relative paths are accepted as post-login redirects (prevents open redirects). */
 export function safeNextPath(next: string | null | undefined, fallback = "/app"): string {
   if (!next || !next.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) return fallback;
