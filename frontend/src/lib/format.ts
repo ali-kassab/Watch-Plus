@@ -41,6 +41,12 @@ export function formatDuration(fromIso: string, toIso?: string | null): string {
   return `${Math.floor(h / 24)}d ${h % 24}h`;
 }
 
+/**
+ * Days of uptime history shown below the `sm` breakpoint so status-strip cells stay readable and tappable.
+ * Lives here (not in the "use client" strip component) so server components can read the value.
+ */
+export const MOBILE_HISTORY_DAYS = 30;
+
 export const INCIDENT_STATUS_LABEL: Record<IncidentStatus, string> = {
   OPEN: "Open",
   INVESTIGATING: "Investigating",

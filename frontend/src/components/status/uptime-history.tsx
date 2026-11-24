@@ -1,7 +1,7 @@
 "use client";
 
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { formatPercent } from "@/lib/format";
+import { formatPercent, MOBILE_HISTORY_DAYS } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 type Level = "good" | "warning" | "serious" | "critical" | "none";
@@ -31,8 +31,8 @@ const dateFmt = new Intl.DateTimeFormat("en", { dateStyle: "medium", timeZone: "
 /** One 2px-separated cell per day; each cell is focusable and has its own hover/focus tooltip. */
 export function UptimeHistory({ name, history }: { name: string; history: { date: string; uptimePercent: number | null }[] }) {
   return (
-    <div role="list" aria-label={`${name}: daily uptime, last ${history.length} days`} className="flex h-8 items-stretch gap-[2px]">
-      {history.map((d) => {
+    <div role="list" aria-label={`${name}: daily uptime history`} className="flex h-8 items-stretch gap-[2px]">
+      {history.map((d, i) => {
         const level = uptimeLevel(d.uptimePercent);
         const text = `${dateFmt.format(new Date(`${d.date}T00:00:00Z`))}: ${d.uptimePercent == null ? "no data" : `${formatPercent(d.uptimePercent)} uptime`}`;
         return (
@@ -45,6 +45,7 @@ export function UptimeHistory({ name, history }: { name: string; history: { date
                 className={cn(
                   "min-w-0 flex-1 rounded-[2px] outline-none transition-opacity hover:opacity-70 focus-visible:ring-2 focus-visible:ring-ring",
                   LEVEL[level].cls,
+                  i < history.length - MOBILE_HISTORY_DAYS && "max-sm:hidden",
                 )}
               />
             </TooltipTrigger>

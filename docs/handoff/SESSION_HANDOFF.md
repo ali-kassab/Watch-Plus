@@ -1,12 +1,12 @@
 # PulseWatch — Session Handoff
 
-_Session 4 · 2026-11-24 · ended at a safe checkpoint at the owner's request._ Read `docs/handoff/PROJECT_HANDOFF.md`
+_Session 5 · 2026-11-24 · in progress (continues session 4 in the same container)._ Read `docs/handoff/PROJECT_HANDOFF.md`
 first (permanent decisions & policies), then this file.
 
 ## Project overview
 PulseWatch: API/website monitoring & incident-management SaaS (portfolio project). `backend/` NestJS 12 + Prisma 7 +
 PostgreSQL (complete, unchanged this session). `frontend/` Next.js 16 App Router: all authenticated workspace pages
-now exist; the public status page is the last missing page.
+and the public status page now exist — **all planned frontend pages are complete**.
 
 ## Git
 - Repo `https://github.com/ali-kassab/Watch-Plus`. PR #1 (`feature/pulsewatch-frontend`) was **merged into `main`** by
@@ -18,8 +18,24 @@ now exist; the public status page is the last missing page.
   earlier commits). Author = Committer = owner, no co-author trailers. Re-set it locally in every new container.
 
 ## Checkpoint reached
-Frontend milestone 2 (remaining pages) — **all workspace pages done**; public `/status/[slug]` **not started**
-(only its history-strip component exists, see below).
+Frontend milestone 2 (remaining pages) **complete**: all workspace pages (session 4) + public `/status/[slug]` (session 5).
+Next milestone: frontend tests (Vitest).
+
+## Completed in session 5
+- `frontend/src/app/status/[slug]/page.tsx` — server page: `generateMetadata` + `<Suspense>` around an async view
+  (dynamic per request under Cache Components). Overall status banner (icon + label), active incidents, services with
+  uptime % + status badge + `UptimeHistory` strip + legend, incidents resolved in the last 30 days, UTC timestamps
+  (deterministic server render), "not found" (404/unpublished/invalid slug, `robots: noindex`) and "temporarily
+  unavailable" (API down/5xx) views.
+- `frontend/src/lib/public-status.ts` — `getPublicStatusPage(slug)`: validates slug, fetches
+  `${BACKEND_URL}/api/public/status-pages/:slug` with `cache: "no-store"` + 10 s timeout, deduped per request with
+  `React.cache`. (`server-only` package is not installed; not added — the module reads only non-secret `BACKEND_URL`.)
+- `components/status/uptime-history.tsx` — below `sm` only the last `MOBILE_HISTORY_DAYS` (30, in `lib/format.ts`)
+  cells show (90 cells were 1.4 px wide on a phone; now ~8 px). **Convention:** constants needed by server components
+  must not be exported from `"use client"` modules (they arrive as client references → rendered `NaN`).
+- Verified: tsc ✅, lint ✅, build ✅; Playwright: published page (title from metadata, banner, 360 cells, tooltip on
+  hover), unknown + invalid slug → not-found view with `noindex` title, iPhone 13 no horizontal overflow, 30 cells ≈ 8 px,
+  backend stopped → "Status temporarily unavailable" ✅.
 
 ## Completed this session (all under `frontend/src/`)
 - Incidents: `app/w/[workspaceId]/incidents/page.tsx` (state tabs, severity filter, pager),
@@ -35,7 +51,7 @@ Frontend milestone 2 (remaining pages) — **all workspace pages done**; public 
 - Shared: `components/common/copy-button.tsx`; `lib/schemas.ts` (+ incident update/resolve, channel, status page, invite
   schemas, `parseRecipients`, `toChannelPayload`); `lib/format.ts` (+ `canManageMember`, `assignableRoles`, `ROLE_LABEL`,
   mirroring backend `team.policy.ts`; the API remains authoritative).
-- `components/status/uptime-history.tsx` — **complete but not yet used**: 90-day daily uptime strip + legend for the
+- `components/status/uptime-history.tsx` — used by the public page: 90-day daily uptime strip + legend for the
   public page (built per the dataviz Skill: status colors only for state, text label in legend + per-cell
   tooltip/aria-label, 2px gaps, focusable cells; thresholds ≥99.9 / ≥99 / ≥95 / else, null = no data).
 - Docs: `docs/handoff/CHANGELOG.md` created (required by PROJECT_HANDOFF).
@@ -58,12 +74,8 @@ Frontend milestone 2 (remaining pages) — **all workspace pages done**; public 
 | Not tested in browser | member role change/remove/leave, channel edit/rotate/delete/test send, workspace delete, RBAC views as VIEWER/MEMBER |
 
 ## Incomplete work / next steps (in order)
-1. **Public `/status/[slug]`** (exact next step): server `app/status/[slug]/page.tsx` with `generateMetadata` +
-   `<Suspense>` around an async view; fetch `${BACKEND_URL}/api/public/status-pages/${encodeURIComponent(slug)}`
-   (validate slug `^[a-z0-9]+(-[a-z0-9]+)*$`, `React.cache` to dedupe with metadata); render overall status, services
-   with `UptimeHistory` + `UptimeLegend`, active and recent resolved incidents; "not found" view for 404/unpublished.
-   Response shape: `PublicStatusPage` in `lib/types.ts`.
-2. Frontend tests (Vitest + Testing Library: `vitest.config.mts`, `npm test`): schemas, format/policy helpers, forms.
+1. ~~Public `/status/[slug]`~~ ✅ done (session 5).
+2. **Frontend tests (exact next step)** (Vitest + Testing Library: `vitest.config.mts`, `npm test`): schemas, format/policy helpers, forms.
 3. Broader browser E2E incl. role-based views.
 4. Docs: README (local PostgreSQL, no Docker), ARCHITECTURE, API_DOCUMENTATION, DATABASE_DESIGN, SECURITY.
 
@@ -76,7 +88,9 @@ Frontend milestone 2 (remaining pages) — **all workspace pages done**; public 
   Demo login demo@pulsewatch.dev / pulsewatch-demo.
 
 ## Known issues
-- Links/prefetches to `/status/<slug>` 404 until step 1 is done.
+- Public pages log a 401 from `/api/auth/refresh` (the root `AuthProvider` tries to restore a session; expected when
+  signed out — pre-existing behavior).
+- Demo services show "down" in the sandbox only (no internet egress — see PROJECT_HANDOFF §8).
 - Arabic RTL / English LTR: mentioned by the owner but not a documented requirement — not implemented (confirm first);
   new components use logical CSS properties (`ps-`, `start-`, `rounded-s-`) where cheap.
 - Branch naming: PROJECT_HANDOFF names `feature/pulsewatch-frontend` (already merged); this session's environment
