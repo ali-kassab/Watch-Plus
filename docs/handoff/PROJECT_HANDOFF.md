@@ -19,6 +19,7 @@ tests, docs.
   co-author. Never Claude/Anthropic/AI identity, never AI `Co-authored-by` trailers or AI attribution in
   commit messages. Verify author/committer before every commit and every push.
 - Never push to `main`, never force-push, never merge PRs, never create/switch branches without authorization.
+- Maintain `docs/handoff/PROJECT_HANDOFF.md`, `docs/handoff/SESSION_HANDOFF.md` and `docs/handoff/CHANGELOG.md`.
 - Only access repositories owned by `ali-kassab`; never touch repositories of other accounts
   (e.g. `yahyamohmuedpro99`, `DeV-Global-LLC`, `Noureldin-Ahmed-FullStack`).
 - Never commit secrets or `.env` files.
@@ -33,8 +34,11 @@ tests, docs.
   confirm with the owner before implementing.)
 
 ## 2. Repository & Git
-- Target remote: `https://github.com/ali-kassab/pulsewatch` (public) — **does not exist yet** (see blockers).
-- Local repo: `/home/user/pulsewatch` (session container path), branch `main` (local only, no remote).
+- **Remote (source of truth): `https://github.com/ali-kassab/Watch-Plus`** (`origin`). The originally planned name
+  `ali-kassab/pulsewatch` was never created (cloud sessions cannot create repositories); the owner chose Watch-Plus.
+- **Authorized development branch: `feature/pulsewatch-frontend`.** `main` holds only the repo's initial commit and is
+  changed only through owner-approved pull requests. GitHub-first: commit and push every tested milestone promptly and
+  verify the remote hash; the cloud container is only a temporary execution environment.
 - Commits so far: see `docs/handoff/SESSION_HANDOFF.md` for the exact hashes.
 
 ## 3. Architecture (implemented)

@@ -1,11 +1,11 @@
 # PulseWatch — Session Handoff
 
-> **Update (session 3, GitHub-first request):** owner authorized branch `feature/pulsewatch-frontend`. All
-> frontend work is now committed there locally as `8285d7a` (author/committer Ali Kassab, no AI trailers);
-> this file moved to `docs/handoff/`. Publishing is **blocked**: `ali-kassab/pulsewatch` does not exist and this
-> cloud session cannot create repositories (`POST /user/repos` → HTTP 403 "sessions are bound to their configured
-> repositories"). Next step: owner creates the empty public repo and adds it to the Claude GitHub App; then attach it,
-> push `main` (existing history only) and `feature/pulsewatch-frontend`, verify remote hashes, continue development.
+> **Update (session 3):** the project is published to the owner's existing repository
+> **https://github.com/ali-kassab/Watch-Plus**, branch **`feature/pulsewatch-frontend`** (all original commits
+> `b81756d`, `64fc577`, `8285d7a`, `a4b4703` preserved; merge commit `52bffd6` joined the repo's GitHub
+> "Initial commit" `8087507` so the branch can be opened as a PR into `main`; tree unchanged). `main` was not
+> modified. This file moved to `docs/handoff/`. Next: continue the remaining frontend pages on the feature branch
+> and push every tested milestone.
 
 _Session 2 · 2026-11-23 · ended at a safe checkpoint at the owner's request._
 Read `docs/handoff/PROJECT_HANDOFF.md` first (permanent decisions & policies), then this file.
