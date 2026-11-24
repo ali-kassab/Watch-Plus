@@ -19,9 +19,14 @@ and the public status page now exist — **all planned frontend pages are comple
 
 ## Checkpoint reached
 Frontend milestone 2 (remaining pages) **complete**: all workspace pages (session 4) + public `/status/[slug]` (session 5).
-Next milestone: frontend tests (Vitest).
+Frontend test suite added (session 5). Next milestone: broader browser E2E (role-based views + untested flows).
 
 ## Completed in session 5
+- **Frontend tests**: `frontend/vitest.config.mts` (jsdom, `@vitejs/plugin-react`, `@/` alias via `resolve.alias` —
+  `vite-tsconfig-paths` from the Next guide is not installed and not needed), `src/test/setup.ts` (jest-dom matchers,
+  cleanup, ResizeObserver/pointer-capture stubs for Radix), scripts `npm test` / `npm run test:watch`. Tests:
+  `src/lib/{format,schemas,api}.test.ts`, `src/components/components.test.tsx`. **46 tests pass**; a deliberate
+  mutation of the internal-note rule made 1 test fail (suite is not vacuous); tsc/lint/build still pass.
 - `frontend/src/app/status/[slug]/page.tsx` — server page: `generateMetadata` + `<Suspense>` around an async view
   (dynamic per request under Cache Components). Overall status banner (icon + label), active incidents, services with
   uptime % + status badge + `UptimeHistory` strip + legend, incidents resolved in the last 30 days, UTC timestamps
@@ -75,8 +80,10 @@ Next milestone: frontend tests (Vitest).
 
 ## Incomplete work / next steps (in order)
 1. ~~Public `/status/[slug]`~~ ✅ done (session 5).
-2. **Frontend tests (exact next step)** (Vitest + Testing Library: `vitest.config.mts`, `npm test`): schemas, format/policy helpers, forms.
-3. Broader browser E2E incl. role-based views.
+2. ~~Frontend tests~~ ✅ done (session 5, 46 tests).
+3. **Broader browser E2E (exact next step)**: role-based views (sign in as a VIEWER/MEMBER via an invitation) and the
+   flows not yet exercised in a browser (see "Not tested in browser" above). Playwright is pre-installed; scripts so
+   far live only in the session scratchpad — no E2E test files are committed.
 4. Docs: README (local PostgreSQL, no Docker), ARCHITECTURE, API_DOCUMENTATION, DATABASE_DESIGN, SECURITY.
 
 ## Environment notes (fresh container)

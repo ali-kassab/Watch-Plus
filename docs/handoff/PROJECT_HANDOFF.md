@@ -110,7 +110,7 @@ grant OWNER); OWNER everything incl. workspace deletion; at least one owner alwa
 | Notifications (email SMTP/log, webhooks, retries, logs, test send) | ✅ implemented & tested |
 | Status pages, analytics, health | ✅ implemented & tested |
 | Seed data | ✅ (`npm run db:seed`, demo@pulsewatch.dev / pulsewatch-demo) |
-| Frontend (Next.js, Tailwind, shadcn/ui, Recharts, RHF+Zod) | 🟡 in progress — see docs/handoff/SESSION_HANDOFF.md |
+| Frontend (Next.js, Tailwind, shadcn/ui, Recharts, RHF+Zod) | ✅ all pages implemented; tests in progress — see docs/handoff/SESSION_HANDOFF.md |
 | Docs: README, ARCHITECTURE, API_DOCUMENTATION, DATABASE_DESIGN, SECURITY, CHANGELOG | ❌ not written (README is a placeholder) |
 | GitHub repository + push | ❌ blocked |
 
@@ -118,7 +118,9 @@ grant OWNER); OWNER everything incl. workspace deletion; at least one owner alwa
 - Unit (`npm test`): 11 files, 77 tests passed.
 - Integration + e2e (`npm run test:e2e`, real PostgreSQL `pulsewatch_test`): 7 files, 58 tests passed.
 - `npm run build`, `npm run typecheck`, `npm run lint`: passed.
-- Frontend tests: none yet.
+- Frontend tests (`cd frontend && npm test`, Vitest 5 + Testing Library, jsdom, `vitest.config.mts`): unit tests for
+  `lib/` (format, schemas, API client) and component tests; async Server Components are covered by browser E2E
+  (Next.js guidance). See `docs/handoff/SESSION_HANDOFF.md` for current counts.
 
 ## 8. Known issues / limitations
 - Repository `ali-kassab/pulsewatch` cannot be created from the cloud session (proxy blocks `POST /user/repos`);

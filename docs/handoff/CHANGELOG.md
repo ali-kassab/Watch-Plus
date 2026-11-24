@@ -11,6 +11,9 @@ Development log per milestone (newest first). Hashes: see `git log`.
 - Public status page `/status/[slug]`: server-rendered (Suspense + `generateMetadata`), overall status banner, active
   and recent resolved incidents, per-service 90-day uptime strip (30 days on phones) with legend and per-day tooltips,
   distinct "not found" and "temporarily unavailable" views.
+- Frontend test suite: `npm test` (Vitest 5 + Testing Library, jsdom) — format/policy helpers, form schemas and
+  payload builders, API client (token, single-flight refresh, errors), incident update form, channel dialog,
+  incident timeline, uptime strip.
 
 ## Earlier (merged into `main` via PR #1, `feature/pulsewatch-frontend`)
 - Backend: NestJS API — auth, workspaces, RBAC, team/invitations, monitors + DB-backed scheduler, incidents,
