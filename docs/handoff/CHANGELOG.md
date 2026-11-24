@@ -3,6 +3,9 @@
 Development log per milestone (newest first). Hashes: see `git log`.
 
 ## Unreleased (branch `claude/peaceful-mayer-6hod8f`)
+### Security
+- Access log no longer records invitation tokens (`/api/invitations/[redacted]`).
+
 ### Added
 - Frontend incidents: list (state tabs, severity filter, pagination), declare-incident dialog, detail page with
   timeline, public updates with status change, internal notes, severity / status-page visibility editing, resolve dialog.

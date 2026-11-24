@@ -63,7 +63,8 @@ Monitors and webhooks make the server fetch user-supplied URLs, so they go throu
 
 - API: `helmet` default headers, `x-powered-by` disabled, JSON bodies limited to 100 kB, strict Zod validation of
   every body, query and route parameter, CORS limited to `FRONTEND_URL` with credentials, uniform error format
-  without stack traces, and a request id on every response for tracing.
+  without stack traces, and a request id on every response for tracing. The access log records method, path, status,
+duration and user id — never bodies, query strings or tokens (invitation tokens in paths are redacted).
 - Frontend (`frontend/next.config.ts`): `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`,
   `Referrer-Policy: strict-origin-when-cross-origin`, a restrictive `Permissions-Policy`, and no `X-Powered-By`.
   The browser talks only to its own origin (`/api` is proxied), so cookies stay first-party.
@@ -82,8 +83,6 @@ deleting a monitor deletes its check history.
 
 - Monitor custom header values are stored as plain JSON in the database (masked for viewers, not encrypted at rest).
   Use dedicated, least-privilege tokens for monitoring.
-- The access log records the request path; for `GET /api/invitations/:token` and `POST …/accept` this includes the
-  invitation token. Tokens are single-use and expire after 7 days, but logs should be treated as sensitive.
 - A removed member keeps a valid access token for up to 15 minutes, but it no longer grants access to that
   workspace, because membership is checked on every request.
 - Rate limits are kept in memory per API process.

@@ -23,6 +23,10 @@ Frontend tests, role-based browser E2E and project documentation done (session 5
 (PROJECT_HANDOFF §9) is complete**; remaining items are optional follow-ups listed below.
 
 ## Completed in session 5
+- **Security fix**: `backend/src/common/http/request-id.middleware.ts` — new `logPath()` drops the query string and
+  redacts `/api/invitations/<token>` → `/api/invitations/[redacted]` in the access log (the middleware already promised
+  "no tokens"). Test: `request-id.middleware.spec.ts`. Verified: backend unit 80 ✅ (77 + 3), e2e 58 ✅, typecheck ✅,
+  lint ✅, build ✅, live request → token absent from log, redacted path present. `docs/SECURITY.md` updated.
 - **Documentation**: `README.md` (rewritten: features, local setup with manually installed Node.js 22 + PostgreSQL 16,
   tests, configuration table), `docs/ARCHITECTURE.md`, `docs/API_DOCUMENTATION.md`, `docs/DATABASE_DESIGN.md`,
   `docs/SECURITY.md`. Every factual claim was checked against the code (corrections made during review: guard/pipe
@@ -89,7 +93,7 @@ Frontend tests, role-based browser E2E and project documentation done (session 5
 | `frontend`: `npm run build` | ✅ pass (all `/w/[workspaceId]/*` routes generated) |
 | Playwright smoke vs real backend + seeded DB: incidents (create → status update → note → severity → resolve) | ✅ |
 | Playwright smoke: notifications (create webhook → secret shown once → listed → delivery log), status-page save, team invite (link shown, dialog closes), settings rename | ✅ (a dialog-close flicker bug found and fixed, re-verified) |
-| Backend `npm test` 77 ✅, `npm run test:e2e` 58 ✅ | run at session start; backend unchanged since |
+| Backend `npm test` 80 ✅, `npm run test:e2e` 58 ✅ | re-run after the session-5 log redaction fix |
 | Previously untested flows | ✅ all covered by the session-5 E2E run (see above) |
 
 ## Incomplete work / next steps (in order)
@@ -100,9 +104,6 @@ Frontend tests, role-based browser E2E and project documentation done (session 5
 5. **Exact next step — owner decisions / optional follow-ups (no further roadmap items are documented):**
    - Owner: review the branch `claude/peaceful-mayer-6hod8f` and decide whether to open a PR into `main` (not done
      without explicit request).
-   - Security follow-up (queued as a suggested task): the access log records `/api/invitations/<token>` paths —
-     redact the token segment in `backend/src/common/http/request-id.middleware.ts`, then drop the bullet in
-     `docs/SECURITY.md` → Known limitations.
    - Optional: commit Playwright E2E specs (requires adding `@playwright/test`; needs owner approval for the dependency).
 
 ## Environment notes (fresh container)
@@ -119,6 +120,5 @@ Frontend tests, role-based browser E2E and project documentation done (session 5
 - Demo services show "down" in the sandbox only (no internet egress — see PROJECT_HANDOFF §8).
 - Arabic RTL / English LTR: mentioned by the owner but not a documented requirement — not implemented (confirm first);
   new components use logical CSS properties (`ps-`, `start-`, `rounded-s-`) where cheap.
-- Access log contains invitation tokens in paths (documented in `docs/SECURITY.md`; follow-up queued).
 - Branch naming: PROJECT_HANDOFF names `feature/pulsewatch-frontend` (already merged); this session's environment
   authorized `claude/peaceful-mayer-6hod8f`. Owner should confirm the branch for the next session.
